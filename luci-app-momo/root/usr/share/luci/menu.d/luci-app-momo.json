@@ -41,6 +41,14 @@
             "path": "momo/proxy"
         }
     },
+    "admin/services/momo/server": {
+        "title": "Server-Side",
+        "order": 45,
+        "action": {
+            "type": "view",
+            "path": "momo/server"
+        }
+    },
     "admin/services/momo/editor": {
         "title": "Editor",
         "order": 50,

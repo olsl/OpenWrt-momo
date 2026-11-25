@@ -2,7 +2,7 @@
     "luci-app-momo": {
         "description": "Grant access to momo procedures",
         "read": {
-            "uci": [ "momo" ],
+            "uci": [ "momo", "passwall2_server" ],
             "ubus": {
                 "rc": [ "*" ],
                 "luci.momo": [ "*" ]
@@ -16,7 +16,7 @@
             }
         },
         "write": {
-            "uci": [ "momo" ],
+            "uci": [ "momo", "passwall2_server" ],
             "file": {
                 "/etc/momo/profiles/*.json": ["write"],
                 "/etc/momo/subscriptions/*.json": ["write"],
