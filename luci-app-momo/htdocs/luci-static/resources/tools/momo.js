@@ -70,6 +70,24 @@ const callMomoDebug = rpc.declare({
     expect: { '': {} }
 });
 
+const callMomoGenWgKeypair = rpc.declare({
+    object: 'luci.momo',
+    method: 'gen_wg_keypair',
+    expect: { '': {} }
+});
+
+const callMomoGenUuid = rpc.declare({
+    object: 'luci.momo',
+    method: 'gen_uuid',
+    expect: { '': {} }
+});
+
+const callMomoServerStatus = rpc.declare({
+    object: 'luci.momo',
+    method: 'server_status',
+    expect: { '': {} }
+});
+
 return baseclass.extend({
     getPaths: async function () {
         return callMomoGetPaths();
@@ -182,5 +200,17 @@ return baseclass.extend({
 
     debug: function () {
         return callMomoDebug();
+    },
+
+    genWgKeypair: function () {
+        return callMomoGenWgKeypair();
+    },
+
+    genUuid: function () {
+        return callMomoGenUuid();
+    },
+
+    serverStatus: function () {
+        return callMomoServerStatus();
     },
 })

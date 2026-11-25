@@ -3,6 +3,7 @@
 'use strict';
 
 import { popen } from 'fs';
+import { cursor } from 'uci';
 import { get_paths, merge_exists, get_users, get_groups, get_cgroups, load_profile } from '/etc/momo/ucode/include.uc';
 
 const methods = {
@@ -98,6 +99,56 @@ const methods = {
 			const paths = get_paths();
 			const success = system(`${paths.debug_sh} > ${paths.debug_log_path}`) == 0;
 			return { success: success };
+		}
+	},
+	gen_wg_keypair: {
+		call: function() {
+			let priv = '', pub = '';
+			let process = popen('sing-box generate wg-keypair');
+			if (process) {
+				let out = process.read('all');
+				process.close();
+				let lines = split(out, '\n');
+				for (let i = 0; i < length(lines); i++) {
+					let parts = split(lines[i], ':');
+					if (trim(parts[0]) == 'PrivateKey') priv = trim(parts[1] || '');
+					if (trim(parts[0]) == 'PublicKey') pub = trim(parts[1] || '');
+				}
+			}
+			return { private_key: priv, public_key: pub };
+		}
+	},
+	server_status: {
+		call: function() {
+			let out = {};
+			let u = cursor();
+			let svc = {};
+			let p = popen('ubus call service list');
+			if (p) {
+				svc = json(p.read('all')) || {};
+				p.close();
+			}
+			let entry = svc['momo_server'];
+			u.foreach('momo_server', 'server', function(sec) {
+				let id = sec['.name'];
+				let running = false;
+				if (entry && entry.instances && entry.instances['momo_server_' + id]) {
+					running = !!entry.instances['momo_server_' + id].running;
+				}
+				out[id] = running;
+			});
+			return out;
+		}
+	},
+	gen_uuid: {
+		call: function() {
+			let uuid = '';
+			let process = popen('sing-box generate uuid');
+			if (process) {
+				uuid = trim(process.read('all'));
+				process.close();
+			}
+			return { uuid: uuid };
 		}
 	}
 };
