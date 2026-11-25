@@ -17,7 +17,9 @@ OUT="${2:-$IN}"
 [ -n "$IN" ] && [ -f "$IN" ] || { echo "sub_convert: input not found: $IN" >&2; exit 1; }
 
 FIX='.outbounds |= map(if (.tls? and (.tls.ech? != null)) then del(.tls.ech) else . end)
-| (.outbounds[] | select(.tag == "🔰 手动选择") | .default) = ([.outbounds[].tag | select(. != null) | select(contains("Cloudflare") and contains("0.1倍率"))][0] // "♻️ 自动选择")'
+| (.outbounds[] | select(.tag == "🔰 手动选择") | .default) = ([.outbounds[].tag | select(. != null) | select(contains("Cloudflare") and contains("0.1倍率"))][0] // "♻️ 自动选择")
+| .route.rules = (if ([ .route.rules[] | select((.inbound? // null)=="dns-in" and .action=="hijack-dns")] | length) > 0 then .route.rules else
+    ([ {"inbound":"dns-in","action":"sniff"}, {"inbound":"dns-in","port":5354,"action":"hijack-dns"} ] + .route.rules) end)'
 
 if jq -e '(.inbounds | map(.tag)) as $t | ($t | index("dns-in")) and ($t | index("tproxy-in")) and ($t | index("tun-in"))' "$IN" >/dev/null 2>&1; then
     echo "sub_convert: inbounds already converted, refix only" >&2
@@ -32,7 +34,14 @@ jq '
         {"tag":"tproxy-in","type":"tproxy","listen":"0.0.0.0","listen_port":12345},
         {"tag":"tun-in","type":"tun","interface_name":"momo-tun","address":["172.18.0.1/30","fdfe:dcba:9876::1/126"],"auto_route":true,"strict_route":false,"stack":"system"}
     ]
-    | .route.rules = ([{"inbound":["tproxy-in","tun-in"],"action":"sniff"}] + (.route.rules | map(if (.inbound == "in") then .inbound = "tun-in" else . end)))
+    | .route.rules = (
+        [
+            {"inbound":"dns-in","action":"sniff"},
+            {"inbound":"dns-in","port":5354,"action":"hijack-dns"},
+            {"inbound":["tproxy-in","tun-in"],"action":"sniff"}
+        ]
+        + (.route.rules | map(if (.inbound? // null) == "in" then .inbound = "tun-in" else . end))
+      )
     | .dns.rules = (.dns.rules | [ .[] | if (.query_type == ["A","AAAA"] and .server == "dns_fakeip") then
         {"domain_keyword":["baidu","qq.com","weibo","taobao","tmall","alipay","aliyun","jd.com","163.com","sina","bilibili"],"server":"domestic-dns"},
         .
