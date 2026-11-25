@@ -24,6 +24,10 @@ SH_DIR="$HOME_DIR/scripts"
 INCLUDE_SH="$SH_DIR/include.sh"
 FIREWALL_INCLUDE_SH="$SH_DIR/firewall_include.sh"
 DEBUG_SH="$SH_DIR/debug.sh"
+SUBCONVERT_SH="$SH_DIR/sub_convert.sh"
+
+## dns
+DNS_INBOUND_PORT="5354"
 
 ## firewall
 FIREWALL_DIR="$HOME_DIR/firewall"
@@ -125,4 +129,41 @@ prepare_files() {
 
 log() {
 	echo "[$(date "+%Y-%m-%d %H:%M:%S")] [$1] $2" >> "$APP_LOG_PATH"
+}
+
+# point dnsmasq upstream at the local sing-box DNS inbound so LAN clients
+# resolve through dnsmasq (loopback) -> dns-in (fakeip/direct split); the
+# LAN DNS hijack redirect is kept off (lan_access_control.dns=0) to avoid
+# redirecting cross-device 53 traffic straight to a loopback-bound inbound.
+# A dedicated momo flag section records that the upstream was added by us,
+# so cleanup never removes a server= entry the user configured manually.
+dnsmasq_bind_local_dns() {
+	[ -x /sbin/uci ] || return
+	local server; server="127.0.0.1#$DNS_INBOUND_PORT"
+	local section; section=$(uci -q get momo.mixin.dnsmasq_server_section)
+	if [ -z "$section" ]; then
+		section=$(uci -q show dhcp 2>/dev/null | sed -n "s/^\(dhcp\.\(cfg[0-9a-f]*\)\)=dnsmasq.*/\\1/p" | head -n1)
+		[ -z "$section" ] && section="dhcp.@dnsmasq[0]"
+	fi
+	# skip if the same upstream already exists (manual or previous run)
+	if uci -q get "$section.server" 2>/dev/null | grep -q "127.0.0.1#$DNS_INBOUND_PORT"; then
+		return
+	fi
+	uci -q add_list "$section.server=$server"
+	uci -q set momo.mixin.dnsmasq_server_section="$section"
+	uci -q commit momo
+	uci -q commit dhcp
+	/etc/init.d/dnsmasq restart > /dev/null 2>&1
+}
+
+dnsmasq_unbind_local_dns() {
+	[ -x /sbin/uci ] || return
+	local section; section=$(uci -q get momo.mixin.dnsmasq_server_section)
+	if [ -n "$section" ]; then
+		uci -q delete "$section.server=127.0.0.1#$DNS_INBOUND_PORT"
+		uci -q delete momo.mixin.dnsmasq_server_section
+		uci -q commit momo
+		uci -q commit dhcp
+		/etc/init.d/dnsmasq restart > /dev/null 2>&1
+	fi
 }

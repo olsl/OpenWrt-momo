@@ -1,0 +1,5 @@
+# OpenWrt shell/ucode scripts must keep LF line endings; CRLF breaks ash/sh.
+*.sh text eol=lf
+*.init text eol=lf
+*.uc text eol=lf
+*.ucode text eol=lf

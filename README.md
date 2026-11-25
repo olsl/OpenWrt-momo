@@ -15,9 +15,20 @@ Transparent Proxy with sing-box on OpenWrt.
 ## Feature
 
 - Transparent Proxy (Redirect/TPROXY/TUN, IPv4 and/or IPv6)
-- Access Control
+- Access Control (by user/group/cgroup/IP/IP6/MAC)
 - Profile Editor
 - Scheduled Restart
+
+## Subscription Conversion & DNS Path
+
+- Before a subscription is persisted, `/etc/momo/scripts/sub_convert.sh` (jq) converts it:
+  - Injects the momo inbound trio: `dns-in` (0.0.0.0:5354 direct), `tproxy-in` (0.0.0.0:12345), `tun-in` (momo-tun).
+  - Inserts sniff rules at the top of route rules; rewrites the legacy `in` inbound tag to `tun-in`.
+  - Inserts domestic-keyword rules pointing to `domestic-dns` before the A/AAAA→fakeip DNS rule.
+  - Strips `tls.ech` from every outbound; sets `🔰 手动选择` default to the first `Cloudflare` + `0.1倍率` node, falling back to `♻️ 自动选择`.
+  - Idempotent: when the trio already exists, only ECH/default-node are fixed.
+- Default DNS path: LAN client port 53 goes to dnsmasq first; dnsmasq forwards over loopback to local `dns-in:5354` (fakeip/direct split happens there). Cross-device 53 is no longer redirected straight to a loopback-bound inbound. The dnsmasq upstream `127.0.0.1#5354` is added/removed automatically on service start/stop.
+- Default transport is TUN (TCP/UDP); router-local traffic goes through `momo-tun`. Redirect/TPROXY remain selectable in LuCI.
 
 ## Install & Update
 

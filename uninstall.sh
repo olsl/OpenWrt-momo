@@ -11,6 +11,13 @@ elif [ -x "/usr/bin/apk" ]; then
 	apk del momo
 fi
 # remove config
+# restore dnsmasq upstream added by momo before the momo config is gone
+momo_section=$(uci -q get momo.mixin.dnsmasq_server_section)
+[ -n "$momo_section" ] && {
+	uci -q delete "$momo_section.server=127.0.0.1#5354"
+	uci -q commit dhcp
+	/etc/init.d/dnsmasq restart > /dev/null 2>&1
+}
 rm -f /etc/config/momo
 # remove files
 rm -rf /etc/momo

@@ -14,7 +14,7 @@ define Package/momo
   CATEGORY:=Network
   TITLE:=Transparent Proxy with sing-box on OpenWrt.
   URL:=https://github.com/nikkinikki-org
-  DEPENDS:=+ca-bundle +curl firewall4 +ip-full +kmod-inet-diag +kmod-nft-socket +kmod-nft-tproxy +kmod-tun +kmod-dummy +sing-box
+  DEPENDS:=+ca-bundle +curl +jq firewall4 +ip-full +kmod-inet-diag +kmod-nft-socket +kmod-nft-tproxy +kmod-tun +kmod-dummy +sing-box
 endef
 
 define Package/momo/conffiles
@@ -35,6 +35,7 @@ define Package/momo/install
 	$(INSTALL_BIN) $(CURDIR)/files/ucode/hijack.ut $(1)/etc/momo/ucode/hijack.ut
 
 	$(INSTALL_BIN) $(CURDIR)/files/scripts/include.sh $(1)/etc/momo/scripts/include.sh
+	$(INSTALL_BIN) $(CURDIR)/files/scripts/sub_convert.sh $(1)/etc/momo/scripts/sub_convert.sh
 	$(INSTALL_BIN) $(CURDIR)/files/scripts/firewall_include.sh $(1)/etc/momo/scripts/firewall_include.sh
 	$(INSTALL_BIN) $(CURDIR)/files/scripts/debug.sh $(1)/etc/momo/scripts/debug.sh
 

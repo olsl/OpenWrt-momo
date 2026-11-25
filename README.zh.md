@@ -15,9 +15,20 @@
 ## 功能
 
 - 透明代理 (Redirect/TPROXY/TUN, IPv4 和/或 IPv6)
-- 访问控制
+- 访问控制（按用户/用户组/CGroup/IP/IP6/MAC 分流）
 - 配置文件编辑器
 - 定时重启
+
+## 订阅转换与 DNS 链路
+
+- 订阅下载落盘前由 `/etc/momo/scripts/sub_convert.sh`（jq）自动转换：
+  - 注入 momo 三件套入站：`dns-in`（0.0.0.0:5354 direct）、`tproxy-in`（0.0.0.0:12345）、`tun-in`（momo-tun）。
+  - 路由顶部插入 sniff 规则，原 inbound tag `in` 改指 `tun-in`。
+  - DNS 规则在 A/AAAA→fakeip 之前插入国内关键词直连 `domestic-dns`。
+  - 删除所有 outbound 的 `tls.ech`；`🔰 手动选择` 默认指向首个含 `Cloudflare` 且 `0.1倍率` 的节点，否则回退 `♻️ 自动选择`。
+  - 幂等：已含三件套入站时只做 ECH/默认节点修正。
+- 默认 DNS 链路：LAN 客户端 53 先交 dnsmasq，dnsmasq 在本机 loopback 转发到本地 `dns-in:5354`（fakeip/直连分流在这层完成）；包内不再把跨设备 53 直接 redirect 到绑定回环的入站。服务启停时自动绑定/还原 dnsmasq 上游 `127.0.0.1#5354`。
+- 默认通路为 TUN（TCP/UDP），本机出站经 `momo-tun` 接管；Redirect/TPROXY 仍可在 LuCI 切换。
 
 ## 安装和更新
 

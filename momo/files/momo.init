@@ -376,6 +376,8 @@ service_started() {
 			log "Proxy" "Hijack failed."
 			log "App" "Exit."
 		fi
+		# point dnsmasq upstream at local dns-in (loopback split resolution)
+		dnsmasq_bind_local_dns
 	fi
 }
 
@@ -443,6 +445,8 @@ cleanup() {
 	if rm "$BRIDGE_NF_CALL_IP6TABLES_FLAG_PATH" > /dev/null 2>&1; then
 		sysctl -q -w net.bridge.bridge-nf-call-ip6tables=1
 	fi
+	# restore dnsmasq upstream removed by momo
+	dnsmasq_unbind_local_dns
 	# delete cron
 	if grep -q "#momo" "/etc/crontabs/root"; then
 		sed -i "/#momo/d" "/etc/crontabs/root" > /dev/null 2>&1
@@ -576,6 +580,10 @@ update_subscription() {
 		# update subscription file
 		rm -f "$subscription_info_header_tmpfile"
 		rm -f "$subscription_header_tmpfile"
+		if [ -x "$SH_DIR/sub_convert.sh" ]; then
+			log "Profile" "Marvis convert subscription: $subscription_name."
+			"$SH_DIR/sub_convert.sh" "$subscription_tmpfile" || log "Profile" "Marvis subscription convert failed."
+		fi
 		mv -f "$subscription_tmpfile" "$subscription_file"
 	elif [ "$success" = 0 ]; then
 		log "Profile" "Subscription update failed."
