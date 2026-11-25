@@ -19,6 +19,7 @@ endef
 
 define Package/momo/conffiles
 /etc/config/momo
+/etc/config/momo_server
 endef
 
 define Package/momo/install
@@ -33,6 +34,7 @@ define Package/momo/install
 	$(INSTALL_BIN) $(CURDIR)/files/ucode/include.uc $(1)/etc/momo/ucode/include.uc
 	$(INSTALL_BIN) $(CURDIR)/files/ucode/mixin.uc $(1)/etc/momo/ucode/mixin.uc
 	$(INSTALL_BIN) $(CURDIR)/files/ucode/hijack.ut $(1)/etc/momo/ucode/hijack.ut
+	$(INSTALL_BIN) $(CURDIR)/files/ucode/server.uc $(1)/etc/momo/ucode/server.uc
 
 	$(INSTALL_BIN) $(CURDIR)/files/scripts/include.sh $(1)/etc/momo/scripts/include.sh
 	$(INSTALL_BIN) $(CURDIR)/files/scripts/sub_convert.sh $(1)/etc/momo/scripts/sub_convert.sh
@@ -44,14 +46,20 @@ define Package/momo/install
 
 	$(INSTALL_DIR) $(1)/etc/config
 	$(INSTALL_CONF) $(CURDIR)/files/momo.conf $(1)/etc/config/momo
+	$(INSTALL_CONF) $(CURDIR)/files/momo_server.conf $(1)/etc/config/momo_server
 
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) $(CURDIR)/files/momo.init $(1)/etc/init.d/momo
+	$(INSTALL_BIN) $(CURDIR)/files/momo_server.init $(1)/etc/init.d/momo_server
 
 	$(INSTALL_DIR) $(1)/etc/uci-defaults
 	$(INSTALL_BIN) $(CURDIR)/files/uci-defaults/firewall.sh $(1)/etc/uci-defaults/99_firewall_momo
 	$(INSTALL_BIN) $(CURDIR)/files/uci-defaults/init.sh $(1)/etc/uci-defaults/99_init_momo
 	$(INSTALL_BIN) $(CURDIR)/files/uci-defaults/migrate.sh $(1)/etc/uci-defaults/99_migrate_momo
+	$(INSTALL_BIN) $(CURDIR)/files/uci-defaults/server.sh $(1)/etc/uci-defaults/99_server_momo
+
+	$(INSTALL_DIR) $(1)/usr/share/ucitrack
+	$(INSTALL_DATA) $(CURDIR)/files/ucitrack/momo_server.json $(1)/usr/share/ucitrack/luci-app-momo-server.json
 
 	$(INSTALL_DIR) $(1)/lib/upgrade/keep.d
 	$(INSTALL_DATA) $(CURDIR)/files/momo.upgrade $(1)/lib/upgrade/keep.d/momo

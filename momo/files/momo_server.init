@@ -1,0 +1,110 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+STOP=10
+USE_PROCD=1
+
+PROG="/usr/bin/sing-box"
+
+TMP_DIR="/tmp/etc/momo_server"
+LOG_DIR="/var/log/momo_server"
+GEN_UCODE="/etc/momo/ucode/server.uc"
+CONFIG="momo_server"
+
+log() {
+	echo "[$(date "+%Y-%m-%d %H:%M:%S")] [momo_server] $1" >> "$LOG_DIR/app.log" 2>/dev/null
+}
+
+start_service() {
+	config_load "$CONFIG"
+
+	local global_enable
+	config_get_bool global_enable "global" "enable" 0
+	if [ "$global_enable" = 0 ]; then
+		log "Disabled."
+		return
+	fi
+
+	if [ ! -x "$PROG" ]; then
+		log "Core $PROG is not executable."
+		return
+	fi
+
+	mkdir -p "$TMP_DIR" "$LOG_DIR"
+
+	# generate per-server sing-box configs and manifest
+	if ! ucode "$GEN_UCODE" 2>/dev/null; then
+		log "Config generation failed."
+		return
+	fi
+
+	local ids
+	ids=$(jsonfilter -i "$TMP_DIR/manifest.json" -e '@[*].id' 2>/dev/null)
+
+	local id port remarks logfile
+	for id in $ids; do
+		[ -z "$id" ] && continue
+		local cfg="$TMP_DIR/$id.json"
+		[ -f "$cfg" ] || continue
+		logfile="$LOG_DIR/$id.log"
+
+		procd_open_instance "momo_server_$id"
+		procd_set_param command /bin/sh -c "$PROG -D $TMP_DIR run -c $cfg >> $logfile 2>&1"
+		procd_set_param respawn
+		procd_set_param file "$cfg"
+		procd_close_instance
+	done
+
+	# firewall allow rules
+	local fw_added=0
+	config_foreach add_fw_rule server
+	if [ "$fw_added" = 1 ]; then
+		uci -q commit firewall
+	fi
+}
+
+add_fw_rule() {
+	local enable port firewall_allow firewall_allow_src
+	config_get enable "$1" "enable"
+	config_get port "$1" "port"
+	config_get firewall_allow "$1" "firewall_allow"
+	config_get firewall_allow_src "$1" "firewall_allow_src" "wan"
+	[ "$enable" = "1" ] || return
+	[ "$firewall_allow" = "1" ] || return
+
+	local uid="momo_server_$1"
+	uci -q set firewall."$uid"=rule
+	uci -q set firewall."$uid".name="$uid"
+	uci -q set firewall."$uid".src="$firewall_allow_src"
+	uci -q set firewall."$uid".dest_port="$port"
+	uci -q set firewall."$uid".target="ACCEPT"
+	fw_added=1
+}
+
+cleanup() {
+	# remove firewall rules owned by momo_server
+	local rules
+	rules=$(uci -q show firewall | sed -n 's/^\(firewall\.momo_server_[A-Za-z0-9_]*\)=rule.*/\1/p')
+	local rule
+	local fw_removed=0
+	for rule in $rules; do
+		uci -q delete firewall."$rule"
+		fw_removed=1
+	done
+	[ "$fw_removed" = 1 ] && uci -q commit firewall
+
+	rm -rf "$TMP_DIR"
+}
+
+stop_service() {
+	cleanup
+}
+
+reload_service() {
+	cleanup
+	start
+}
+
+service_triggers() {
+	procd_add_reload_trigger "$CONFIG"
+}
