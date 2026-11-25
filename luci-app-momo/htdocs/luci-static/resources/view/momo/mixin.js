@@ -71,12 +71,6 @@ return view.extend({
         o.value('0', _('Disable'));
         o.value('1', _('Enable'));
 
-        o = s.taboption('dns', form.ListValue, 'dns_independent_cache', _('DNS Independent Cache'));
-        o.optional = true;
-        o.placeholder = _('Unmodified');
-        o.value('0', _('Disable'));
-        o.value('1', _('Enable'));
-
         o = s.taboption('dns', form.Value, 'dns_cache_capacity', _('DNS Cache Capacity'));
         o.datatype = 'uinteger';
         o.placeholder = _('Unmodified');
@@ -122,7 +116,7 @@ return view.extend({
         o.value('0', _('Disable'));
         o.value('1', _('Enable'));
 
-        o = s.taboption('cache', form.ListValue, 'cache_store_rdrc', _('Cache Store RDRC'));
+        o = s.taboption('cache', form.ListValue, 'cache_store_dns', _('Cache Store DNS'));
         o.optional = true;
         o.placeholder = _('Unmodified');
         o.value('0', _('Disable'));

@@ -88,8 +88,8 @@ msgid "Cache Store FakeIP"
 msgstr "缓存 FakeIP"
 
 #: applications/luci-app-momo/htdocs/luci-static/resources/view/momo/mixin.js:125
-msgid "Cache Store RDRC"
-msgstr "缓存 RDRC"
+msgid "Cache Store DNS"
+msgstr "缓存 DNS"
 
 #: applications/luci-app-momo/htdocs/luci-static/resources/view/momo/editor.js:27
 msgid "Choose File"
@@ -149,10 +149,6 @@ msgstr "禁用 DNS 缓存"
 #: applications/luci-app-momo/htdocs/luci-static/resources/view/momo/mixin.js:68
 msgid "DNS Disable Expire"
 msgstr "禁用 DNS 过期"
-
-#: applications/luci-app-momo/htdocs/luci-static/resources/view/momo/mixin.js:74
-msgid "DNS Independent Cache"
-msgstr "DNS 独立缓存"
 
 #: applications/luci-app-momo/htdocs/luci-static/resources/view/momo/mixin.js:84
 msgid "DNS Reverse Mapping"

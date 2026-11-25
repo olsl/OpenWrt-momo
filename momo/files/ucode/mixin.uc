@@ -19,7 +19,6 @@ config['dns'] = {};
 config['dns']['strategy'] = uci.get('momo', 'mixin', 'dns_strategy');
 config['dns']['disable_cache'] = uci_bool(uci.get('momo', 'mixin', 'dns_disable_cache'));
 config['dns']['disable_expire'] = uci_bool(uci.get('momo', 'mixin', 'dns_disable_expire'));
-config['dns']['independent_cache'] = uci_bool(uci.get('momo', 'mixin', 'dns_independent_cache'));
 config['dns']['cache_capacity'] = uci_int(uci.get('momo', 'mixin', 'dns_cache_capacity'));
 config['dns']['reverse_mapping'] = uci_bool(uci.get('momo', 'mixin', 'dns_reverse_mapping'));
 
@@ -35,7 +34,7 @@ config['experimental']['cache_file'] = {};
 config['experimental']['cache_file']['enabled'] = uci_bool(uci.get('momo', 'mixin', 'cache_enabled'));
 config['experimental']['cache_file']['path'] = uci.get('momo', 'mixin', 'cache_path');
 config['experimental']['cache_file']['store_fakeip'] = uci_bool(uci.get('momo', 'mixin', 'cache_store_fakeip'));
-config['experimental']['cache_file']['store_rdrc'] = uci_bool(uci.get('momo', 'mixin', 'cache_store_rdrc'));
+config['experimental']['cache_file']['store_dns'] = uci_bool(uci.get('momo', 'mixin', 'cache_store_dns'));
 
 config['experimental']['clash_api'] = {};
 config['experimental']['clash_api']['external_ui'] = uci.get('momo', 'mixin', 'external_control_ui_path');

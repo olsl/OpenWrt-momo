@@ -81,7 +81,7 @@ msgid "Cache Store FakeIP"
 msgstr ""
 
 #: applications/luci-app-momo/htdocs/luci-static/resources/view/momo/mixin.js:125
-msgid "Cache Store RDRC"
+msgid "Cache Store DNS"
 msgstr ""
 
 #: applications/luci-app-momo/htdocs/luci-static/resources/view/momo/editor.js:27
@@ -141,10 +141,6 @@ msgstr ""
 
 #: applications/luci-app-momo/htdocs/luci-static/resources/view/momo/mixin.js:68
 msgid "DNS Disable Expire"
-msgstr ""
-
-#: applications/luci-app-momo/htdocs/luci-static/resources/view/momo/mixin.js:74
-msgid "DNS Independent Cache"
 msgstr ""
 
 #: applications/luci-app-momo/htdocs/luci-static/resources/view/momo/mixin.js:84

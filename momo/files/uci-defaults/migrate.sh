@@ -42,17 +42,26 @@ section_mixin=$(uci -q get momo.mixin); [ -z "$section_mixin" ] && {
 	uci set momo.mixin.log_disabled='0'
 	uci set momo.mixin.log_level='info'
 	uci set momo.mixin.log_timestamp='1'
-	uci set momo.mixin.dns_independent_cache='1'
 	uci set momo.mixin.dns_reverse_mapping='1'
 	uci set momo.mixin.cache_enabled='1'
 	uci set momo.mixin.cache_store_fakeip='1'
-	uci set momo.mixin.cache_store_rdrc='1'
+	uci set momo.mixin.cache_store_dns='1'
 	uci set momo.mixin.external_control_ui_path='ui'
 	uci set momo.mixin.external_control_ui_download_url='https://github.com/Zephyruso/zashboard/releases/latest/download/dist-cdn-fonts.zip'
 }
 
 # since v1.2.1
 config_clear_at_stop=$(uci -q get momo.log.clear_at_stop); [ -z "$config_clear_at_stop" ] && uci set momo.log.clear_at_stop=1
+
+# migrate deprecated sing-box 1.14 DNS cache options
+# independent_cache: removed in 1.16, no replacement (default behaviour suffices)
+uci delete momo.mixin.dns_independent_cache > /dev/null 2>&1
+# store_rdrc -> store_dns (persist full DNS cache instead of rejected-response cache)
+if [ -z "$(uci -q get momo.mixin.cache_store_dns)" ]; then
+	rdrc=$(uci -q get momo.mixin.cache_store_rdrc); [ -z "$rdrc" ] && rdrc=1
+	uci set momo.mixin.cache_store_dns="$rdrc"
+fi
+uci delete momo.mixin.cache_store_rdrc > /dev/null 2>&1
 
 # commit
 uci commit momo
